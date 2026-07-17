@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-
-# give up as soon as any error occurs
+# Lab fork wrapper: skip full CUDA host_injections install so CPU smoke
+# (cowsay) is not blocked by multi-GB CUDA SDK installs on GPU hosts.
 set -e
 
 git clone https://github.com/EESSI/software-layer-scripts
 
-# symlink everything, except for:
-# - common files like LICENSE and README.md
-# - 'bot' subdirectory, there we need to be a bit more careful (see below)
-for file in $(ls software-layer-scripts | egrep -v 'easystacks|LICENSE|README.md|^bot'); do
+for file in $(ls software-layer-scripts | egrep -v "easystacks|LICENSE|README.md|^bot"); do
     ln -s software-layer-scripts/${file}
 done
 
-# symlink all scripts in 'bot' subdirectory, except for bot/build.sh
-for file in $(ls software-layer-scripts/bot | grep -v '^build.sh'); do
+for file in $(ls software-layer-scripts/bot | grep -v "^build.sh"); do
     ln -s ../software-layer-scripts/bot/${file} bot/${file}
 done
 
-# call out to bot/build.sh script from software-layer-scripts
-software-layer-scripts/bot/build.sh
+# CI-style: do not install full CUDA SDKs under host_injections
+software-layer-scripts/bot/build.sh --skip-cuda-install "$@"
