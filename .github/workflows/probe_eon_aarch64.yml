@@ -16,6 +16,13 @@ jobs:
       - name: Show host CPU
         run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
 
+      - name: Keep the user install between runs
+        uses: actions/cache@v4
+        with:
+          path: ~/eessi
+          key: eon-1692-aarch64-generic-${{ github.run_id }}
+          restore-keys: eon-1692-aarch64-generic-
+
       - name: Mount EESSI CernVM-FS repository
         uses: eessi/github-action-eessi@v3
         with:
@@ -64,6 +71,9 @@ jobs:
           grep -nE '^== (processing|COMPLETED|FAILED)|^ERROR' eb.out || true
           for log in $(grep -oE '/tmp/eb-[^ )]+\.log' eb.out | sort -u); do
             [ -f "$log" ] && cp "$log" logs/
+          done
+          for t in $(find /tmp/runner/easybuild/build -path '*meson-logs/testlog.txt' 2>/dev/null); do
+            echo "=== $t"; cp "$t" "logs/$(echo "$t" | tr / _)"; grep -nE 'FAILED|failed|REQUIRE|CHECK|expansion|Approx|error|exit status' "$t" | head -80
           done
           for f in logs/easybuild-*.log; do
             [ -f "$f" ] || continue

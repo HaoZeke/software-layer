@@ -6,7 +6,7 @@ name: probe Highway 1.4.0 on aarch64/generic
 on:
   workflow_dispatch:
   push:
-    branches: [probe/highway-aarch64]
+    branches: [probe/never-on-push]
 permissions:
   contents: read
 jobs:
