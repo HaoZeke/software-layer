@@ -1,0 +1,80 @@
+# Probe: build the twelve easystack entries software-layer PR 1692 adds to
+# EESSI 2026.06, for aarch64/generic on a GitHub Arm runner, with the same
+# from-commit and include-easyblocks-from-commit pins, and keep the logs.
+name: probe eOn easystack on aarch64/generic
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/highway-aarch64]
+permissions:
+  contents: read
+jobs:
+  eon:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 350
+    steps:
+      - name: Show host CPU
+        run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
+
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2026.06'
+
+      - name: Build the PR 1692 entries with EESSI-extend for aarch64/generic
+        run: |
+          cat > eon-1692.yml <<'YML'
+          easyconfigs:
+            - Highway-1.4.0-GCCcore-15.2.0.eb:
+                options:
+                  from-commit: f6a7f8bb597b4fc1d79ef7b9a64e6e49d18143e2
+            - inih-62-GCCcore-15.2.0.eb
+            - fmt-12.2.0-GCCcore-15.2.0.eb
+            - cargo-c-0.10.23-GCCcore-15.2.0.eb
+            - robin-map-1.4.1-GCCcore-15.2.0.eb
+            - nanobind-2.13.0-GCCcore-15.2.0.eb
+            - CapnProto-1.4.0-GCCcore-15.2.0.eb:
+                options:
+                  from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
+            - quill-11.1.0-GCCcore-15.2.0.eb:
+                options:
+                  from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
+            - readcon-core-0.13.1-GCCcore-15.2.0.eb:
+                options:
+                  from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
+            - rgpot-3.0.0-GCCcore-15.2.0.eb:
+                options:
+                  from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
+            - eOn-2.17.10-foss-2026.1.eb:
+                options:
+                  include-easyblocks-from-commit: 8bf091921178ef758011898aeb5921fb8f9d814d
+                  from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
+          YML
+          export EESSI_SOFTWARE_SUBDIR_OVERRIDE=aarch64/generic
+          source /cvmfs/software.eessi.io/versions/2026.06/init/bash
+          module load EESSI-extend/2026.06-easybuild
+          eb --version
+          set +e
+          eb --easystack eon-1692.yml --robot --parallel 4 2>&1 | tee eb.out
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "eb exit code: $rc"
+          mkdir -p logs
+          cp eb.out logs/
+          grep -nE '^== (processing|COMPLETED|FAILED)|^ERROR' eb.out || true
+          for log in $(grep -oE '/tmp/eb-[^ )]+\.log' eb.out | sort -u); do
+            [ -f "$log" ] && cp "$log" logs/
+          done
+          for f in logs/easybuild-*.log; do
+            [ -f "$f" ] || continue
+            echo "=== $f"; grep -nE 'ERROR|error:|Error [0-9]|FAILED|tests failed|Failed' "$f" | tail -80
+          done
+          exit $rc
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eon-1692-aarch64-generic-logs
+          path: logs/
+          if-no-files-found: warn
