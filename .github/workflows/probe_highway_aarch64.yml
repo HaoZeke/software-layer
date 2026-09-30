@@ -1,0 +1,56 @@
+# Probe: build Highway 1.4.0 (with the aarch64 SVE patch from easyconfigs PR 26651)
+# on top of EESSI 2026.06 for aarch64/generic, on a GitHub Arm runner, and keep
+# the EasyBuild log. software-layer PR 1692 builds nothing on the bot's
+# aarch64/generic node and its log is out of reach; this reproduces the build.
+name: probe Highway 1.4.0 on aarch64/generic
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/highway-aarch64]
+permissions:
+  contents: read
+jobs:
+  highway:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    steps:
+      - name: Show host CPU
+        run: lscpu
+
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2026.06'
+
+      - name: Build Highway 1.4.0 with EESSI-extend for aarch64/generic
+        run: |
+          export EESSI_SOFTWARE_SUBDIR_OVERRIDE=aarch64/generic
+          source /cvmfs/software.eessi.io/versions/2026.06/init/bash
+          module load EESSI-extend/2026.06-easybuild
+          eb --version
+          eb --show-config | grep -E 'optarch|hooks|installpath|buildpath' || true
+          set +e
+          eb --from-commit f6a7f8bb597b4fc1d79ef7b9a64e6e49d18143e2 \
+             Highway-1.4.0-GCCcore-15.2.0.eb --robot --parallel 4 2>&1 | tee eb.out
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "eb exit code: $rc"
+          mkdir -p logs
+          cp eb.out logs/
+          # the log of the failed build, named in the error line
+          for log in $(grep -oE '/tmp/eb-[^ )]+\.log' eb.out | sort -u); do
+            [ -f "$log" ] && cp "$log" logs/
+          done
+          find /tmp -maxdepth 3 -name 'easybuild-*.log' -newer eb.out -exec cp {} logs/ \; 2>/dev/null || true
+          for f in logs/*.log; do
+            echo "=== tail of $f"; grep -nE 'ERROR|FAILED|error:|Errors while running|tests failed|Test .* Failed' "$f" | tail -60
+          done
+          exit $rc
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highway-aarch64-generic-logs
+          path: logs/
+          if-no-files-found: warn
