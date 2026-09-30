@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 350
     steps:
+      - uses: actions/checkout@v4
+
       - name: Show host CPU
         run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
 
@@ -61,9 +63,19 @@ jobs:
           source /cvmfs/software.eessi.io/versions/2026.06/init/bash
           module load EESSI-extend/2026.06-easybuild
           eb --version
+          # rgpot 3.0.0 with the Morse cutoff-shift tolerance fix (rgpot d3a4d1d)
+          # as an EasyBuild patch, the way the 2.17.10 chain on easyconfigs PR
+          # 26480 has to carry it until a release ships it.
+          mkdir -p patches && cp "$GITHUB_WORKSPACE/.github/probe-patches/rgpot-3.0.0_morse-shift-tolerance.patch" patches/
           set +e
-          eb --easystack eon-1692.yml --robot --parallel 4 2>&1 | tee eb.out
+          eb --from-commit a473f050f7ccec221f2fbb814d7a91a439462654 rgpot-3.0.0-GCCcore-15.2.0.eb \
+             --try-amend=patches=rgpot-3.0.0_morse-shift-tolerance.patch \
+             --sourcepath="$PWD/patches:$HOME/eessi/sources" --robot --parallel 4 2>&1 | tee eb.out
           rc=${PIPESTATUS[0]}
+          if [ "$rc" = 0 ]; then
+            eb --easystack eon-1692.yml --robot --parallel 4 2>&1 | tee -a eb.out
+            rc=${PIPESTATUS[0]}
+          fi
           set -e
           echo "eb exit code: $rc"
           mkdir -p logs
