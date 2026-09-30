@@ -18,8 +18,8 @@ jobs:
       - name: Show host CPU
         run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
 
-      - name: Keep the user install between runs
-        uses: actions/cache@v4
+      - name: Restore the user install of an earlier run
+        uses: actions/cache/restore@v4
         with:
           path: ~/eessi
           key: eon-1692-aarch64-generic-${{ github.run_id }}
@@ -53,7 +53,7 @@ jobs:
                   from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
             - rgpot-3.0.0-GCCcore-15.2.0.eb:
                 options:
-                  from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
+                  from-commit: 66fa89934f0476cd4f9ff14154ee4c87ae5c5d82
             - eOn-2.17.10-foss-2026.1.eb:
                 options:
                   include-easyblocks-from-commit: 8bf091921178ef758011898aeb5921fb8f9d814d
@@ -63,19 +63,9 @@ jobs:
           source /cvmfs/software.eessi.io/versions/2026.06/init/bash
           module load EESSI-extend/2026.06-easybuild
           eb --version
-          # rgpot 3.0.0 with the Morse cutoff-shift tolerance fix (rgpot d3a4d1d)
-          # as an EasyBuild patch, the way the 2.17.10 chain on easyconfigs PR
-          # 26480 has to carry it until a release ships it.
-          mkdir -p patches && cp "$GITHUB_WORKSPACE/.github/probe-patches/rgpot-3.0.0_morse-shift-tolerance.patch" patches/
           set +e
-          eb --from-commit a473f050f7ccec221f2fbb814d7a91a439462654 rgpot-3.0.0-GCCcore-15.2.0.eb \
-             --try-amend=patches=rgpot-3.0.0_morse-shift-tolerance.patch \
-             --sourcepath="$PWD/patches:$HOME/eessi/sources" --robot --parallel 4 2>&1 | tee eb.out
+          eb --easystack eon-1692.yml --robot --parallel 4 2>&1 | tee eb.out
           rc=${PIPESTATUS[0]}
-          if [ "$rc" = 0 ]; then
-            eb --easystack eon-1692.yml --robot --parallel 4 2>&1 | tee -a eb.out
-            rc=${PIPESTATUS[0]}
-          fi
           set -e
           echo "eb exit code: $rc"
           mkdir -p logs
@@ -92,6 +82,13 @@ jobs:
             echo "=== $f"; grep -nE 'ERROR|error:|Error [0-9]|FAILED|tests failed|Failed' "$f" | tail -80
           done
           exit $rc
+
+      - name: Save the user install for the next run
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/eessi
+          key: eon-1692-aarch64-generic-${{ github.run_id }}
 
       - name: Keep the logs
         if: always()
