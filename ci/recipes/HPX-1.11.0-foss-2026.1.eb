@@ -31,8 +31,7 @@ dependencies = [
     ('gperftools', '2.18.1'),
 ]
 
-configopts = '-DCMAKE_CXX_COMPILER=g++ '
-configopts += '-DHPX_WITH_MALLOC=tcmalloc '
+configopts = '-DHPX_WITH_MALLOC=tcmalloc '
 configopts += '-DHPX_WITH_HWLOC=TRUE '
 configopts += '-DHPX_WITH_GOOGLE_PERFTOOLS=TRUE '
 configopts += '-DHPX_WITH_NETWORKING=TRUE '
@@ -43,9 +42,6 @@ configopts += '-DHPX_WITH_EXAMPLES=TRUE '
 # configopts += '-DHPX_WITH_MAX_CPU_COUNT=128' #this should be handled by a hook for the system
 # configopts += '-DHPX_WITH_MAX_CPU_COUNT=' + os.cpu_count()
 configopts += '-DHPX_WITH_FETCH_ASIO=TRUE '
-# Under RPATH linking, the install-time RPATH rewrite drops the wrapper's entries
-# from the plugins in lib/hpx; linking with the install RPATH avoids the rewrite.
-configopts += '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON '
 
 bin_lib_subdirs = ['lib/%(namelower)s/']
 
