@@ -10,8 +10,10 @@ fake=$(mktemp)
 case $profile in
   neoverse_n1) feats="fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp ssbs"
                sed -E -e "s/^(Features\s*:).*/\1 $feats/" -e 's/^(CPU part\s*:).*/\1 0xd0c/' /proc/cpuinfo > "$fake" ;;
+  # GCC builds -mcpu=native from the CPU part and subtracts only the features
+  # it knows, so a newer part would keep SVE; present an Armv8.0 core (A57).
   generic)     feats="fp asimd evtstrm cpuid"
-               sed -E -e "s/^(Features\s*:).*/\1 $feats/" /proc/cpuinfo > "$fake" ;;
+               sed -E -e "s/^(Features\s*:).*/\1 $feats/" -e 's/^(CPU part\s*:).*/\1 0xd07/' /proc/cpuinfo > "$fake" ;;
   *) echo "armmask-run: unknown profile $profile" >&2; exit 2 ;;
 esac
 sudo mount --bind "$fake" /proc/cpuinfo
