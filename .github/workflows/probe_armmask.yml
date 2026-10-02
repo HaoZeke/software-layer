@@ -1,0 +1,66 @@
+# Probe: can an aarch64 build host present an older CPU (neoverse_n1, generic)
+# to every CPU detector in an EESSI build without a VM? getauxval is masked by
+# an LD_PRELOAD library and /proc/cpuinfo by a bind mount; the detectors are
+# EESSI archdetect, GCC -mcpu=native, archspec and Highway's runtime dispatch,
+# then Highway's test suite runs unmasked and masked.
+name: probe armmask on an Arm runner
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+permissions:
+  contents: read
+jobs:
+  armmask:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show host CPU
+        run: |
+          lscpu
+          grep -m4 -E "^(CPU implementer|CPU part|CPU variant|Features)" /proc/cpuinfo
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2025.06'
+      - name: Build armmask
+        run: |
+          cd .github/armmask
+          gcc -O2 -Wall -shared -fPIC -o libarmmask.so armmask.c -ldl
+      - name: Build Highway 1.4.0 with EESSI GCC 14.3, -mcpu=generic
+        run: |
+          set +u
+          source /cvmfs/software.eessi.io/versions/2025.06/init/bash
+          module load GCCcore/14.3.0 CMake/3.31.8-GCCcore-14.3.0 googletest/1.17.0-GCCcore-14.3.0
+          curl -sSfL -o hwy.tar.gz https://github.com/google/highway/archive/refs/tags/1.4.0.tar.gz
+          tar xzf hwy.tar.gz && mkdir hwy-build && cd hwy-build
+          export CFLAGS="-O2 -mcpu=generic" CXXFLAGS="-O2 -mcpu=generic"
+          cmake ../highway-1.4.0 -DCMAKE_BUILD_TYPE=Release -DHWY_SYSTEM_GTEST=ON -DHWY_ENABLE_EXAMPLES=OFF \
+                -DCMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE=PRE_TEST > cmake.log
+          make -j"$(nproc)" > make.log 2>&1 || { tail -40 make.log; exit 1; }
+      - name: Detectors, unmasked and per profile
+        run: |
+          export HWY_LIST=$PWD/hwy-build/hwy_list_targets
+          A=.github/armmask
+          echo "### unmasked"; bash $A/probe-arm.sh
+          for p in neoverse_n1 generic; do echo "### $p"; ARMMASK_PROFILE=$p bash $A/armmask-run.sh bash $A/probe-arm.sh; done
+      - name: Highway tests, unmasked and masked generic
+        run: |
+          set +u
+          source /cvmfs/software.eessi.io/versions/2025.06/init/bash
+          module load GCCcore/14.3.0 CMake/3.31.8-GCCcore-14.3.0 googletest/1.17.0-GCCcore-14.3.0
+          export LD_LIBRARY_PATH="$EBROOTGCCCORE/lib64:$EBROOTGOOGLETEST/lib:$EBROOTGOOGLETEST/lib64"
+          cd hwy-build
+          s=$(date +%s); ctest -j"$(nproc)" > ctest-unmasked.log 2>&1; echo "unmasked rc=$? $(( $(date +%s) - s ))s"; tail -3 ctest-unmasked.log
+          s=$(date +%s); ARMMASK_PROFILE=generic bash ../.github/armmask/armmask-run.sh ctest -j"$(nproc)" > ctest-generic.log 2>&1; echo "masked generic rc=$? $(( $(date +%s) - s ))s"; tail -3 ctest-generic.log
+          ./tests/targets_test --gtest_brief=1 2>&1 | tail -2
+          ARMMASK_PROFILE=generic bash ../.github/armmask/armmask-run.sh ./hwy_list_targets 2>&1 | grep -E "CPU supports"
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: armmask-logs
+          path: |
+            hwy-build/*.log
+          if-no-files-found: warn
