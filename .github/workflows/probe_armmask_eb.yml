@@ -1,0 +1,66 @@
+# Probe: EasyBuild builds Highway 1.4.0 from the EasyBuild 5.4.0 recipe (no SVE
+# patch from easyconfigs PR 26651) for aarch64/generic on a Neoverse N2 runner,
+# once the bot's way (EESSI_SOFTWARE_SUBDIR_OVERRIDE, host CPU visible) and once
+# under the generic armmask with no override. Does masking change whether
+# Highway's test step passes, and does the mask alone land the install in the
+# generic tree?
+name: probe armmask with EasyBuild
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+permissions:
+  contents: read
+jobs:
+  highway-eb:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [override, armmask]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2026.06'
+      - name: Build armmask
+        run: gcc -O2 -Wall -shared -fPIC -o .github/armmask/libarmmask.so .github/armmask/armmask.c -ldl
+      - name: eb Highway 1.4.0 (EB 5.4.0 recipe), ${{ matrix.mode }}
+        run: |
+          cat > eb-hwy.sh <<'SCRIPT'
+          set +u
+          source /cvmfs/software.eessi.io/versions/2026.06/init/bash
+          echo "EESSI_SOFTWARE_SUBDIR=$EESSI_SOFTWARE_SUBDIR"
+          export EESSI_USER_INSTALL=$HOME/eessi-user
+          mkdir -p "$EESSI_USER_INSTALL"
+          module load EESSI-extend/2026.06-easybuild
+          eb --show-config | grep -E 'optarch|installpath ' || true
+          eb --show-system-info | grep -E 'arch name|features' | cut -c1-200
+          s=$(date +%s)
+          eb Highway-1.4.0-GCCcore-15.2.0.eb --robot --parallel "$(nproc)" > eb.out 2>&1
+          rc=$?
+          echo "eb rc=$rc in $(( $(date +%s) - s ))s"
+          tail -5 eb.out
+          log=$(grep -oE '/tmp/eb-[^ )]+\.log' eb.out | tail -1)
+          [ -f "$log" ] || log=$(ls -t "$EESSI_USER_INSTALL"/versions/*/software/linux/*/*/software/Highway/*/easybuild/easybuild-Highway-*.log 2>/dev/null | head -1)
+          echo "log: $log"
+          [ -n "$log" ] && grep -m3 -E "optarch|CXXFLAGS=" "$log" | cut -c1-200
+          [ -n "$log" ] && grep -E "tests passed|tests failed|Failed|\*\*\*Failed" "$log" | head -15
+          ls -d "$EESSI_USER_INSTALL"/versions/*/software/linux/*/*/software/Highway 2>/dev/null
+          mkdir -p logs; cp eb.out logs/; [ -n "$log" ] && cp "$log" logs/
+          exit $rc
+          SCRIPT
+          if [ "${{ matrix.mode }}" = override ]; then
+            EESSI_SOFTWARE_SUBDIR_OVERRIDE=aarch64/generic bash eb-hwy.sh
+          else
+            ARMMASK_PROFILE=generic bash .github/armmask/armmask-run.sh bash eb-hwy.sh
+          fi
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highway-eb-${{ matrix.mode }}
+          path: logs/
+          if-no-files-found: warn

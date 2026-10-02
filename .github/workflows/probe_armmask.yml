@@ -7,7 +7,7 @@ name: probe armmask on an Arm runner
 on:
   workflow_dispatch:
   push:
-    branches: [probe/armmask]
+    branches: [probe/never-on-push]
 permissions:
   contents: read
 jobs:
