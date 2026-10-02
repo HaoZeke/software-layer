@@ -102,3 +102,9 @@ easyconfigs:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26789
         from-commit: 01d6674a4eda858d5a2fdc3e52535bd772901d27
+  - BEDTools-2.31.1-GCC-15.2.0.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26634
+        from-commit: 097f4708abcfd5b29a607013475f71de708efc8e
+  - SAMtools-1.23.1-GCC-15.2.0.eb
+  - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
