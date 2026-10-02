@@ -48,3 +48,7 @@ run v1-qemu-vl128 neoverse_v1 "$qemu" -cpu max,sve-default-vector-length=16
 run a64fx-native a64fx
 run a64fx-qemu-vl512 a64fx "$qemu" -cpu max,sve-default-vector-length=64
 run grace-qemu-vl128 nvidia/grace "$qemu" -cpu max,sve-default-vector-length=16
+# The same builds under QEMU's named models of the target cores, which carry
+# those cores' ID registers and feature sets rather than every feature (max).
+run v1-qemu-neoverse-v1 neoverse_v1 "$qemu" -cpu neoverse-v1,sve-default-vector-length=32
+run a64fx-qemu-a64fx a64fx "$qemu" -cpu a64fx,sve-default-vector-length=64
