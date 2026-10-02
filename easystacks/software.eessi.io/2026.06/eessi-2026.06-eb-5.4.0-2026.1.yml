@@ -102,7 +102,7 @@ easyconfigs:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26789
         from-commit: 01d6674a4eda858d5a2fdc3e52535bd772901d27
-  - Score-P-10.1-lmpich-2026.1.eb
+  - Score-P-10.1-gompi-2026.1.eb
   - OTF2-3.2-GCCcore-15.2.0.eb
   - OPARI2-2.0.10-GCCcore-15.2.0.eb
   - SIONlib-1.7.7-GCCcore-15.2.0-tools.eb
