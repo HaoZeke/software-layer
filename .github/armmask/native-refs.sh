@@ -38,6 +38,10 @@ for c in "${compilers[@]}"; do
     sudo mount --bind "$A/cpuinfo/$v" /proc/cpuinfo
     if [ "$bin" = gcc ]; then gcc_flags "$path"; else clang_flags "$path"; fi > "$out/$v.$ref.txt"
     sudo umount /proc/cpuinfo
+    # The same view without a mount: GCC (9+) reads GCC_CPUINFO and LLVM (20+)
+    # reads LLVM_CPUINFO in place of /proc/cpuinfo.
+    if [ "$bin" = gcc ]; then GCC_CPUINFO="$A/cpuinfo/$v" gcc_flags "$path"; else LLVM_CPUINFO="$A/cpuinfo/$v" clang_flags "$path"; fi > "$out/$v.$ref.env.txt"
+    if cmp -s "$out/$v.$ref.txt" "$out/$v.$ref.env.txt"; then echo "ENVSAME $v $ref"; else echo "ENVDIFF $v $ref: $(diff "$out/$v.$ref.txt" "$out/$v.$ref.env.txt" | grep '^[<>]' | tr '\n' ' ')"; fi
     t=${target[$v]}
     for kind in refs311 shipped; do
       r="$A/$kind/$t/$ref.txt"
