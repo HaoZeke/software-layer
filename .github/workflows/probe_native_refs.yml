@@ -1,0 +1,32 @@
+# Probe: reproduce the per-target native flag references of
+# EESSI/software-layer-scripts#311 on hardware that is not the target, by
+# showing the compilers a recorded /proc/cpuinfo of each target.
+name: probe native flag references from cpuinfo views
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+    paths: ['.github/armmask/native-refs.sh', '.github/armmask/cpuinfo/**', '.github/workflows/probe_native_refs.yml']
+permissions:
+  contents: read
+jobs:
+  refs:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Host CPU, unmasked
+        run: grep -m4 -E "^(CPU implementer|CPU part|CPU variant|Features)" /proc/cpuinfo
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2025.06'
+      - name: Resolve -mcpu=native per view and compare
+        run: OUT=$PWD/native-refs bash .github/armmask/native-refs.sh | tee native-refs.summary
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-refs
+          path: |
+            native-refs
+            native-refs.summary
