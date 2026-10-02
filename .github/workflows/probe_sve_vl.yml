@@ -1,0 +1,32 @@
+# Probe: can trees with a build-time SVE vector length (neoverse_v1, a64fx)
+# be tested on a 128-bit SVE host by running them under qemu-aarch64 user mode
+# with the target's vector length?
+name: probe SVE vector length under qemu user mode
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+    paths: ['.github/armmask/sve-vl-test.sh', '.github/workflows/probe_sve_vl.yml']
+permissions:
+  contents: read
+jobs:
+  sve-vl:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install qemu user mode
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq qemu-user > /dev/null && qemu-aarch64 --version | head -1
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2025.06'
+      - name: GROMACS natively and under qemu per vector length
+        run: WORK=$PWD/sve-vl bash .github/armmask/sve-vl-test.sh | tee sve-vl.summary
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sve-vl
+          path: |
+            sve-vl/*/*.log
+            sve-vl.summary
