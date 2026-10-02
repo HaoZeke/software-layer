@@ -102,3 +102,12 @@ easyconfigs:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26789
         from-commit: 01d6674a4eda858d5a2fdc3e52535bd772901d27
+  - matplotlib-3.10.9-gfbf-2026.1.eb
+  - Pillow-12.2.0-GCCcore-15.2.0.eb
+  - sympy-1.14.0-gfbf-2026.1.eb
+  - dask-2026.7.1-gfbf-2026.1.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26713
+        from-commit: 455567d8a8a3e5e92845542ba827efb2fe6ed350
+  - wrapt-2.2.1-GCCcore-15.2.0.eb
+  - ASE-3.28.0-gfbf-2026.1.eb
