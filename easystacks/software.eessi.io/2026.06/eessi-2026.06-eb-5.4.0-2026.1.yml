@@ -102,3 +102,16 @@ easyconfigs:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26789
         from-commit: 01d6674a4eda858d5a2fdc3e52535bd772901d27
+  - Score-P-10.1-lmpich-2026.1.eb
+  - OTF2-3.2-GCCcore-15.2.0.eb
+  - OPARI2-2.0.10-GCCcore-15.2.0.eb
+  - SIONlib-1.7.7-GCCcore-15.2.0-tools.eb
+  - libdwarf-2.3.1-GCCcore-15.2.0.eb
+  - gperftools-2.18.1-GCCcore-15.2.0.eb
+  - GDB-17.2-GCCcore-15.2.0.eb
+  - nvtop-3.3.2-GCCcore-15.2.0.eb
+  - Extrae-5.0.6-gompi-2026.1.eb
+  - PAPI-7.2.0-GCCcore-15.2.0.eb
+  - likwid-5.5.1-GCC-15.2.0.eb
+  - CubeLib-4.9.1-GCCcore-15.2.0.eb
+  - CubeWriter-4.9.1-GCCcore-15.2.0.eb
