@@ -1,0 +1,36 @@
+# Probe: do EESSI aarch64 binaries (Ruby, the support#197 case) behave
+# differently under a 64K-page kernel than under a 4K-page kernel?
+name: probe 64K page kernel
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+    paths: ['.github/armmask/pagesize-*.sh', '.github/workflows/probe_pagesize.yml']
+permissions:
+  contents: read
+jobs:
+  pagesize:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install qemu-system and tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-arm busybox-static cpio zstd > /dev/null
+          ls -la /dev/kvm || echo "no /dev/kvm"
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2023.06'
+      - name: Prefetch the payload binaries into the CernVM-FS cache
+        run: OUT=1 bash .github/armmask/pagesize-payload.sh
+      - name: 4K page kernel (control)
+        run: sudo bash .github/armmask/pagesize-vm.sh generic .github/armmask/pagesize-payload.sh vm-4k.log
+      - name: 64K page kernel
+        run: sudo bash .github/armmask/pagesize-vm.sh generic-64k .github/armmask/pagesize-payload.sh vm-64k.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pagesize
+          path: vm-*.log
