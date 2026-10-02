@@ -1,6 +1,9 @@
 name: site list against EESSI 2026.06
 on:
   workflow_dispatch:
+  push:
+    branches: [probe/2026.1-chain]
+    paths: ['ci/sitelist/**', '.github/workflows/sitelist_2026_1.yml']
 permissions:
   contents: read
 jobs:
