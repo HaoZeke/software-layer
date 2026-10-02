@@ -26,6 +26,9 @@ jobs:
       - name: eb-stack from main
         run: cargo install --locked --git https://github.com/HaoZeke/eb-stack eb_stack
       - name: solve the 2025 names at foss/2026.1 against the EESSI baseline
+        env:
+          # EASYBUILD_FILTER_DEPS as the EESSI-extend module for 2026.06 sets it.
+          FILTER_DEPS: binutils,bzip2,DBus,flex,gettext,gperf,help2man,intltool,libreadline,makeinfo,ncurses,NVPL,ParMETIS,util-linux,XZ,zlib
         run: |
           mkdir -p out
           python3 probe/ci/sitelist/have_2026_1.py eb/easybuild/easyconfigs probe/ci/sitelist/roots.txt > out/roots.ok
@@ -36,6 +39,7 @@ jobs:
           "$HOME/.cargo/bin/eb-stack" stack solve \
             --easyconfigs eb/easybuild/easyconfigs --toolchain foss/2026.1 "${args[@]}" \
             --baseline-commits-from eb --baseline-also-toolchain lfoss/2026.1 \
+            --filter-deps "$FILTER_DEPS" \
             --lock-out out/foss-2026.1.lock.json \
             --build-list-out out/site.list --build-list-excludes-baseline \
             --jenkins-build-list-out out/jenkins.list \
