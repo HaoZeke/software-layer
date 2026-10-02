@@ -1,0 +1,46 @@
+name: site list against EESSI 2026.06
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  solve:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: probe
+      - name: EESSI 2026.06 easystacks from upstream main
+        run: |
+          git clone -q --depth 1 https://github.com/EESSI/software-layer.git sl
+          echo "software-layer $(git -C sl rev-parse --short HEAD)"
+      - name: easyconfigs develop with history for from-commit
+        run: |
+          git clone -q --filter=blob:none https://github.com/easybuilders/easybuild-easyconfigs.git eb
+          git -C eb checkout -q develop
+          echo "easyconfigs $(git -C eb rev-parse --short HEAD)"
+      - name: eb-stack from main
+        run: cargo install --locked --git https://github.com/HaoZeke/eb-stack eb_stack
+      - name: solve the 2025 names at foss/2026.1 against the EESSI baseline
+        run: |
+          mkdir -p out
+          python3 probe/ci/sitelist/have_2026_1.py eb/easybuild/easyconfigs probe/ci/sitelist/roots.txt > out/roots.ok
+          args=()
+          while read -r r; do args+=(--root "$r"); done < out/roots.ok
+          while read -r f; do args+=(--baseline-easystack "$f"); done < <(find sl/easystacks/software.eessi.io/2026.06 -name '*.yml' | sort)
+          set -o pipefail
+          "$HOME/.cargo/bin/eb-stack" stack solve \
+            --easyconfigs eb/easybuild/easyconfigs --toolchain foss/2026.1 "${args[@]}" \
+            --baseline-commits-from eb --baseline-also-toolchain lfoss/2026.1 \
+            --lock-out out/foss-2026.1.lock.json \
+            --build-list-out out/site.list --build-list-excludes-baseline \
+            --jenkins-build-list-out out/jenkins.list \
+            --stack-diff-out out/stack.diff.md 2>&1 | tee out/solve.log
+          echo "site.list: $(wc -l < out/site.list) modules"
+          grep -A6 '## Summary' out/stack.diff.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sitelist
+          path: out
