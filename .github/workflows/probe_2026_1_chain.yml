@@ -10,6 +10,10 @@ on:
         description: JSON list of targets to build
         required: false
         default: ''
+      overlay_prs:
+        description: easyconfigs PR numbers whose recipes are bumped from instead of develop
+        required: false
+        default: '26155'
 permissions:
   contents: read
 env:
@@ -27,13 +31,28 @@ jobs:
           git checkout -q FETCH_HEAD
           mkdir -p ../base/develop-ci ../base/overlay
           mv easybuild ../base/develop-ci/
+      - name: recipes from open easyconfigs PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRS: ${{ inputs.overlay_prs || '26155' }}
+        run: |
+          for pr in $PRS; do
+            sha=$(gh api repos/easybuilders/easybuild-easyconfigs/pulls/$pr --jq .head.sha)
+            repo=$(gh api repos/easybuilders/easybuild-easyconfigs/pulls/$pr --jq .head.repo.full_name)
+            gh api --paginate repos/easybuilders/easybuild-easyconfigs/pulls/$pr/files --jq '.[]|select(.status!="removed")|.filename' |
+              grep -E '^easybuild/easyconfigs/.*\.(eb|patch)$' | while read -r f; do
+                mkdir -p "base/overlay/$(dirname "${f#easybuild/easyconfigs/}")"
+                curl -fsSL "https://raw.githubusercontent.com/$repo/$sha/$f" -o "base/overlay/${f#easybuild/easyconfigs/}"
+                echo "overlay from #$pr: ${f#easybuild/easyconfigs/}"
+              done
+          done
       - name: eb-stack from main
         run: cargo install --locked --git https://github.com/HaoZeke/eb-stack eb_stack
       - name: bump the chain to foss/2026.1
         run: |
           python3 ci/bumpchain.py "$HOME/.cargo/bin/eb-stack" base chain \
             ELPA QuantumESPRESSO CDO ESMF NCO ncview VTK PyQt6 HPX libcint petsc4py \
-            Valgrind Scalasca pocl Bowtie2 VCFtools mpifileutils
+            Valgrind Scalasca pocl Bowtie2 VCFtools mpifileutils CP2K
           cat chain/order.txt
       - uses: actions/upload-artifact@v4
         with:
@@ -42,6 +61,7 @@ jobs:
             chain/*/easyconfigs
             chain/order.txt
             base/develop-ci/easybuild/easyconfigs
+            base/overlay
   build:
     needs: bump
     runs-on: ubuntu-24.04
@@ -49,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ${{ fromJSON(inputs.targets != '' && inputs.targets || '["QuantumESPRESSO","CDO","ESMF","NCO","ncview","VTK","PyQt6","HPX","libcint","petsc4py","Valgrind","Scalasca","pocl","Bowtie2","VCFtools","mpifileutils"]') }}
+        target: ${{ fromJSON(inputs.targets != '' && inputs.targets || '["QuantumESPRESSO","CDO","ESMF","NCO","ncview","VTK","PyQt6","HPX","libcint","petsc4py","Valgrind","Scalasca","pocl","Bowtie2","VCFtools","mpifileutils","CP2K"]') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,7 +85,7 @@ jobs:
         run: |
           lscpu | grep -E 'Model name|^CPU\(s\)'
           # Corrected recipes (version moves, C23 fixes) come first on the robot path.
-          ROBOT=$PWD/probe/ci/recipes:$(for d in chain/*/easyconfigs; do printf '%s:' "$PWD/$d"; done)$PWD/base/develop-ci/easybuild/easyconfigs:
+          ROBOT=$PWD/probe/ci/recipes:$(for d in chain/*/easyconfigs; do printf '%s:' "$PWD/$d"; done)$PWD/base/develop-ci/easybuild/easyconfigs:$PWD/base/overlay:
           ec=$(find probe/ci/recipes -name '${{ matrix.target }}-*.eb' | head -1)
           [ -n "$ec" ] || ec=$(find "chain/${{ matrix.target }}/easyconfigs" -name '${{ matrix.target }}-*.eb' | head -1)
           echo "recipe: $ec"

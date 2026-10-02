@@ -1,6 +1,7 @@
 """Bump a set of names to the 2026.1 generation in dependency order.
 
-For each name, take the newest non-CUDA recipe at 2025b (else 2025a) and run
+For each name, take the newest non-CUDA recipe at 2025b (else 2025a), from
+<base>/overlay first (recipes from open PRs) and develop otherwise, and run
 `eb-stack package bump`. When the profile solve reports an unresolved
 dependency, bump that dependency first, add its output to the robot path,
 and retry. Every bump that resolves stays on the path for the ones after it.
@@ -12,17 +13,27 @@ tree = os.path.join(base, [d for d in os.listdir(base) if d.startswith('develop-
 robot = [tree, os.path.join(base, 'overlay')]
 os.makedirs(out, exist_ok=True)
 TC = {'foss': '2026.1', 'gompi': '2026.1', 'gfbf': '2026.1', 'GCC': '15.2.0', 'GCCcore': '15.2.0'}
-spell = {n.lower(): (l, n) for l in os.listdir(tree) for n in os.listdir(os.path.join(tree, l))}
+def recipes(root):
+    """Map each lowercased package name under root to the .eb paths for it."""
+    found = {}
+    for d, _, fs in os.walk(root):
+        for f in fs:
+            if f.endswith('.eb'):
+                name = re.match(r"(?s).*?^name\s*=\s*['\"]([^'\"]+)", open(os.path.join(d, f)).read(), re.M)
+                if name:
+                    found.setdefault(name.group(1).lower(), []).append(os.path.join(d, f))
+    return found
+overlay = recipes(robot[1]) if os.path.isdir(robot[1]) else {}
+develop = recipes(tree)
 def source(name):
-    l, n = spell.get(name.lower(), (None, None))
-    if not l: return None
-    files = sorted(os.listdir(os.path.join(tree, l, n)))
-    for gen in (r'(2025b|14\.3\.0)', r'(2025a|14\.2\.0)'):
-        hits = [f for f in files if f.endswith('.eb') and 'CUDA' not in f
-                and re.search(r'-(foss|gompi|gfbf|GCC|GCCcore)-' + gen + r'(\.eb|-)', f)]
-        if hits:
-            hits.sort(key=lambda f: [int(x) if x.isdigit() else x for x in re.split(r'(\d+)', f)])
-            return os.path.join(tree, l, n, hits[-1])
+    for pool in (overlay, develop):
+        files = pool.get(name.lower(), [])
+        for gen in (r'(2025b|14\.3\.0)', r'(2025a|14\.2\.0)'):
+            hits = [f for f in files if 'CUDA' not in os.path.basename(f)
+                    and re.search(r'-(foss|gompi|gfbf|GCC|GCCcore)-' + gen + r'(\.eb|-)', os.path.basename(f))]
+            if hits:
+                hits.sort(key=lambda f: [int(x) if x.isdigit() else x for x in re.split(r'(\d+)', os.path.basename(f))])
+                return hits[-1]
     return None
 done, failed, order = {}, {}, []
 def bump(name, depth=0):
