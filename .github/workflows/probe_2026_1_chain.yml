@@ -1,0 +1,82 @@
+# Probe: build the foss/2026.1 bumps of Snellius packages that have no 2026.1
+# easyconfig upstream yet, on EESSI 2026.06 through EESSI-extend, one job per
+# top-level package, and keep the test reports. The recipes are generated in
+# the first job by eb-stack from easyconfigs develop, not committed here.
+name: probe 2026.1 bump chain
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/2026.1-chain]
+permissions:
+  contents: read
+env:
+  EB_DEVELOP: fa14cab4041df3660ff7a99cd855ce681913293f
+jobs:
+  bump:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: easyconfigs develop at the pinned commit
+        run: |
+          git init -q ebdev && cd ebdev
+          git fetch -q --depth 1 https://github.com/easybuilders/easybuild-easyconfigs.git "$EB_DEVELOP"
+          git checkout -q FETCH_HEAD
+          mkdir -p ../base/develop-ci ../base/overlay
+          mv easybuild ../base/develop-ci/
+      - name: eb-stack from main
+        run: cargo install --locked --git https://github.com/HaoZeke/eb-stack eb_stack
+      - name: bump the chain to foss/2026.1
+        run: |
+          python3 ci/bumpchain.py "$HOME/.cargo/bin/eb-stack" base chain \
+            ELPA QuantumESPRESSO CDO ESMF NCO ncview VTK PyQt6 HPX libcint petsc4py \
+            Valgrind Scalasca pocl Bowtie2 VCFtools mpifileutils
+          cat chain/order.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chain-recipes
+          path: |
+            chain/*/easyconfigs
+            chain/order.txt
+            base/develop-ci/easybuild/easyconfigs
+  build:
+    needs: bump
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [QuantumESPRESSO, CDO, ESMF, NCO, ncview, VTK, PyQt6, HPX, libcint,
+                 petsc4py, Valgrind, Scalasca, pocl, Bowtie2, VCFtools, mpifileutils]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: chain-recipes
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2026.06'
+      - name: Build ${{ matrix.target }} with EESSI-extend
+        run: |
+          lscpu | grep -E 'Model name|^CPU\(s\)'
+          ROBOT=$(for d in chain/*/easyconfigs; do printf '%s:' "$PWD/$d"; done)$PWD/base/develop-ci/easybuild/easyconfigs:
+          ec=$(find "chain/${{ matrix.target }}/easyconfigs" -name '${{ matrix.target }}-*.eb' | head -1)
+          echo "recipe: $ec"
+          source /cvmfs/software.eessi.io/versions/2026.06/init/bash
+          export EESSI_USER_INSTALL=$HOME/eessi
+          mkdir -p "$EESSI_USER_INSTALL"
+          module load EESSI-extend/2026.06-easybuild
+          mkdir -p logs
+          set +e
+          eb --robot --robot-paths="$ROBOT" --parallel 4 \
+             --dump-test-report="logs/${{ matrix.target }}-test-report.md" "$ec" 2>&1 | tee logs/eb.out
+          rc=${PIPESTATUS[0]}
+          set -e
+          for log in $(grep -oE '/tmp/eb-[^ )]+\.log' logs/eb.out | sort -u); do [ -f "$log" ] && cp "$log" logs/; done
+          grep -nE '^== (COMPLETED|FAILED)|^ERROR|Build succeeded for' logs/eb.out || true
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-${{ matrix.target }}
+          path: logs
