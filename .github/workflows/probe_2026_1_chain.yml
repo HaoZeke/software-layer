@@ -5,12 +5,15 @@
 name: probe 2026.1 bump chain
 on:
   workflow_dispatch:
-  push:
-    branches: [probe/2026.1-chain]
+    inputs:
+      targets:
+        description: JSON list of targets to build
+        required: false
+        default: ''
 permissions:
   contents: read
 env:
-  EB_DEVELOP: fa14cab4041df3660ff7a99cd855ce681913293f
+  EB_DEVELOP: 86a23a7653e5a2c21a495161ac4cada78ff43b76
 jobs:
   bump:
     runs-on: ubuntu-24.04
@@ -46,9 +49,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [QuantumESPRESSO, CDO, ESMF, NCO, ncview, VTK, PyQt6, HPX, libcint,
-                 petsc4py, Valgrind, Scalasca, pocl, Bowtie2, VCFtools, mpifileutils]
+        target: ${{ fromJSON(inputs.targets != '' && inputs.targets || '["QuantumESPRESSO","CDO","ESMF","NCO","ncview","VTK","PyQt6","HPX","libcint","petsc4py","Valgrind","Scalasca","pocl","Bowtie2","VCFtools","mpifileutils"]') }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: probe
       - uses: actions/download-artifact@v4
         with:
           name: chain-recipes
@@ -59,8 +64,10 @@ jobs:
       - name: Build ${{ matrix.target }} with EESSI-extend
         run: |
           lscpu | grep -E 'Model name|^CPU\(s\)'
-          ROBOT=$(for d in chain/*/easyconfigs; do printf '%s:' "$PWD/$d"; done)$PWD/base/develop-ci/easybuild/easyconfigs:
-          ec=$(find "chain/${{ matrix.target }}/easyconfigs" -name '${{ matrix.target }}-*.eb' | head -1)
+          # Corrected recipes (version moves, C23 fixes) come first on the robot path.
+          ROBOT=$PWD/probe/ci/recipes:$(for d in chain/*/easyconfigs; do printf '%s:' "$PWD/$d"; done)$PWD/base/develop-ci/easybuild/easyconfigs:
+          ec=$(find probe/ci/recipes -name '${{ matrix.target }}-*.eb' | head -1)
+          [ -n "$ec" ] || ec=$(find "chain/${{ matrix.target }}/easyconfigs" -name '${{ matrix.target }}-*.eb' | head -1)
           echo "recipe: $ec"
           source /cvmfs/software.eessi.io/versions/2026.06/init/bash
           export EESSI_USER_INSTALL=$HOME/eessi
