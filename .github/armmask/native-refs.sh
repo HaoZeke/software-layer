@@ -15,7 +15,11 @@ clang_flags() { "$1" -mcpu=native -### -c -x c - -o /dev/null < /dev/null 2>&1 |
 declare -A target=(
   [neoverse_v1-rhel8]=neoverse_v1 [neoverse_v1-amazon]=neoverse_v1
   [v2-graviton4like]=aws/graviton4 [v2-graviton4like-nopac]=aws/graviton4
-  [v2-grace-rhel9]=none [v2-grace-ubuntu2204]=none [v2-axion]=none [a64fx-rocky8]=none )
+  [v2-grace-rhel9]=nvidia/grace [v2-grace-ubuntu2204]=nvidia/grace [v2-axion]=none [a64fx-rocky8]=none
+  [v2-grace-rhel9-asbuilt]=nvidia/grace [v2-grace-ubuntu2204-asbuilt]=nvidia/grace
+  [v2-axion-as-grace]=nvidia/grace [v2-axion-as-graviton4]=aws/graviton4 [v2-graviton4like-asbuilt]=aws/graviton4 )
+# shipped/<target>/<compiler>.txt: the -mcpu GCC recorded in DW_AT_producer of
+# the shipped EESSI tree, i.e. what the real build hosts resolved.
 # EESSI version, module, compiler binary, reference name
 compilers=(
   "2025.06 GCCcore/13.3.0 gcc gcc-13.3.0"
@@ -34,13 +38,19 @@ for c in "${compilers[@]}"; do
     sudo mount --bind "$A/cpuinfo/$v" /proc/cpuinfo
     if [ "$bin" = gcc ]; then gcc_flags "$path"; else clang_flags "$path"; fi > "$out/$v.$ref.txt"
     sudo umount /proc/cpuinfo
-    t=${target[$v]} r="$A/refs311/${target[$v]}/$ref.txt"
-    if [ "$t" = none ] || [ ! -f "$r" ]; then
-      echo "NOREF  $v $ref: $(grep -E 'mcpu=|target-cpu' "$out/$v.$ref.txt" | tr '\n' ' ')"
-    elif d=$(diff <(grep -v '^#' "$r") "$out/$v.$ref.txt"); then
-      echo "MATCH  $v $ref (reference $t)"
-    else
-      echo "DIFFER $v $ref (reference $t): $(echo "$d" | grep '^[<>]' | tr '\n' ' ')"
-    fi
+    t=${target[$v]}
+    for kind in refs311 shipped; do
+      r="$A/$kind/$t/$ref.txt"
+      [ "$t" != none ] && [ -f "$r" ] || continue
+      if [ "$kind" = shipped ]; then mine=$(grep -- '-mcpu=' "$out/$v.$ref.txt"); else mine=$(cat "$out/$v.$ref.txt"); fi
+      if d=$(diff <(grep -v '^#' "$r") <(echo "$mine")); then
+        echo "MATCH  $v $ref ($kind $t)"
+      else
+        echo "DIFFER $v $ref ($kind $t): $(echo "$d" | grep '^[<>]' | tr '\n' ' ')"
+      fi
+      seen=1
+    done
+    [ -n "${seen:-}" ] || echo "NOREF  $v $ref: $(grep -E 'mcpu=|target-cpu' "$out/$v.$ref.txt" | tr '\n' ' ')"
+    unset seen
   done
 done

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [probe/armmask]
-    paths: ['.github/armmask/native-refs.sh', '.github/armmask/cpuinfo/**', '.github/workflows/probe_native_refs.yml']
+    paths: ['.github/armmask/native-refs.sh', '.github/armmask/cpuinfo/**', '.github/armmask/shipped/**', '.github/workflows/probe_native_refs.yml']
 permissions:
   contents: read
 jobs:
