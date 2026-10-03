@@ -1,0 +1,29 @@
+# Probe: do cpuinfo views generated from recorded -mcpu strings (gen_armprofile.py,
+# GCC's own tables) give the same strings back through GCC_CPUINFO?
+name: probe generated aarch64 cpuinfo views
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+    paths: ['.github/armmask/gen_armprofile.py', '.github/armmask/gen-check.sh', '.github/workflows/probe_gen_armprofile.yml']
+permissions:
+  contents: read
+jobs:
+  gen:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2025.06'
+      - name: Generate views and check them with GCC 14.3 and 15.2
+        run: WORK=$PWD/gen-check bash .github/armmask/gen-check.sh | tee gen-check.summary
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gen-check
+          path: |
+            gen-check/*.cpuinfo
+            gen-check.summary
