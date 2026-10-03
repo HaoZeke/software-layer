@@ -1,0 +1,22 @@
+# Probe: the site fingerprint (kernel, page size, CPU part and hwcaps, SVE
+# length, NUMA layout, archdetect) on an Arm runner.
+name: probe site fingerprint
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/armmask]
+    paths: ['.github/armmask/site-fingerprint.sh', '.github/workflows/probe_fingerprint.yml']
+permissions:
+  contents: read
+jobs:
+  fingerprint:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2025.06'
+      - name: Fingerprint
+        run: bash .github/armmask/site-fingerprint.sh | tee fingerprint.json | python3 -m json.tool
