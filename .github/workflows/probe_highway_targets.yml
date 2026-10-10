@@ -1,6 +1,8 @@
 # Probe: which Highway 1.4.0 SIMD target makes GCC 15.2.0 crash on
 # aarch64 with the EasyBuild GENERIC flags (-mcpu=generic). Compiles only
-# the random_test target, once per candidate HWY_DISABLED_TARGETS set, and
+# the random_test target, once per candidate HWY_DISABLED_TARGETS set (run 38083032670
+# showed the static NEON target compiles and the single fixed-width SVE targets
+# are not alone responsible), and
 # keeps the preprocessed source GCC writes with -freport-bug.
 name: probe Highway targets on aarch64/generic
 on:
@@ -17,18 +19,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: baseline
-            extra: ""
-          - name: no-sve256
-            extra: "-DHWY_DISABLED_TARGETS=HWY_SVE_256"
-          - name: no-sve2-128
-            extra: "-DHWY_DISABLED_TARGETS=HWY_SVE2_128"
+          - name: no-sve
+            disabled: "HWY_SVE"
+          - name: no-sve2
+            disabled: "HWY_SVE2"
+          - name: no-neon-bf16
+            disabled: "HWY_NEON_BF16"
+          - name: no-scalable-sve
+            disabled: "HWY_SVE | HWY_SVE2"
           - name: no-fixed-sve
-            extra: "-DHWY_DISABLED_TARGETS=(HWY_SVE_256|HWY_SVE2_128)"
-          - name: no-sve-at-all
-            extra: "-DHWY_DISABLED_TARGETS=(HWY_SVE|HWY_SVE2|HWY_SVE_256|HWY_SVE2_128)"
-          - name: static-only
-            extra: "-DHWY_COMPILE_ONLY_STATIC"
+            disabled: "HWY_SVE_256 | HWY_SVE2_128"
+          - name: no-all-sve
+            disabled: "HWY_SVE | HWY_SVE2 | HWY_SVE_256 | HWY_SVE2_128"
     steps:
       - name: Show host CPU
         run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
@@ -53,9 +55,14 @@ jobs:
           source /cvmfs/software.eessi.io/versions/2026.06/init/bash
           module load GCCcore/15.2.0 CMake/4.2.1-GCCcore-15.2.0 googletest/1.17.0-GCCcore-15.2.0
           g++ --version | head -1
+          # the target set goes in through a header: a parenthesised macro value
+          # on the command line is mangled by the Makefile's shell
+          printf '#define HWY_DISABLED_TARGETS (%s)\n' "${{ matrix.disabled }}" > "$PWD/disabled.h"
+          cat disabled.h
+          export LD_LIBRARY_PATH="$EBROOTGOOGLETEST/lib64:$EBROOTGOOGLETEST/lib:${LD_LIBRARY_PATH:-}"
           mkdir build && cd build
           cmake ../highway-1.4.0 -DHWY_SYSTEM_GTEST=ON -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_FLAGS="-O2 -ftree-vectorize -mcpu=generic -fno-math-errno -freport-bug ${{ matrix.extra }}" \
+            -DCMAKE_CXX_FLAGS="-O2 -ftree-vectorize -mcpu=generic -fno-math-errno -freport-bug -include $PWD/../disabled.h" \
             -DCMAKE_C_FLAGS="-O2 -ftree-vectorize -mcpu=generic -fno-math-errno"
           set +e
           make -j4 VERBOSE=1 random_test 2>&1 | tee ../make.out
