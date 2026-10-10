@@ -1,0 +1,79 @@
+# Probe: which Highway 1.4.0 SIMD target makes GCC 15.2.0 crash on
+# aarch64 with the EasyBuild GENERIC flags (-mcpu=generic). Compiles only
+# the random_test target, once per candidate HWY_DISABLED_TARGETS set, and
+# keeps the preprocessed source GCC writes with -freport-bug.
+name: probe Highway targets on aarch64/generic
+on:
+  workflow_dispatch:
+  push:
+    branches: [probe/highway-aarch64]
+permissions:
+  contents: read
+jobs:
+  highway:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: baseline
+            extra: ""
+          - name: no-sve256
+            extra: "-DHWY_DISABLED_TARGETS=HWY_SVE_256"
+          - name: no-sve2-128
+            extra: "-DHWY_DISABLED_TARGETS=HWY_SVE2_128"
+          - name: no-fixed-sve
+            extra: "-DHWY_DISABLED_TARGETS=(HWY_SVE_256|HWY_SVE2_128)"
+          - name: no-sve-at-all
+            extra: "-DHWY_DISABLED_TARGETS=(HWY_SVE|HWY_SVE2|HWY_SVE_256|HWY_SVE2_128)"
+          - name: static-only
+            extra: "-DHWY_COMPILE_ONLY_STATIC"
+    steps:
+      - name: Show host CPU
+        run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
+
+      - name: Mount EESSI CernVM-FS repository
+        uses: eessi/github-action-eessi@v3
+        with:
+          eessi_stack_version: '2026.06'
+
+      - name: Fetch Highway 1.4.0 and the easyconfig patch
+        run: |
+          curl -sSL -o highway-1.4.0.tar.gz https://github.com/google/highway/archive/refs/tags/1.4.0.tar.gz
+          echo "e72241ac9524bb653ae52ced768b508045d4438726a303f10181a38f764a453c  highway-1.4.0.tar.gz" | sha256sum -c
+          tar xzf highway-1.4.0.tar.gz
+          curl -sSL -o sve.patch https://raw.githubusercontent.com/easybuilders/easybuild-easyconfigs/f6a7f8bb597b4fc1d79ef7b9a64e6e49d18143e2/easybuild/easyconfigs/h/Highway/Highway-1.4.0_fix-aarch64-sve-build.patch
+          echo "8228cbe26f7caa164b0b8e1cce2c9ea440ca9c5f6a996463ca8779ce2232c222  sve.patch" | sha256sum -c
+          cd highway-1.4.0 && patch -p1 < ../sve.patch
+
+      - name: Configure and compile random_test (${{ matrix.name }})
+        run: |
+          export EESSI_SOFTWARE_SUBDIR_OVERRIDE=aarch64/generic
+          source /cvmfs/software.eessi.io/versions/2026.06/init/bash
+          module load GCCcore/15.2.0 CMake/4.2.1-GCCcore-15.2.0 googletest/1.17.0-GCCcore-15.2.0
+          g++ --version | head -1
+          mkdir build && cd build
+          cmake ../highway-1.4.0 -DHWY_SYSTEM_GTEST=ON -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS="-O2 -ftree-vectorize -mcpu=generic -fno-math-errno -freport-bug ${{ matrix.extra }}" \
+            -DCMAKE_C_FLAGS="-O2 -ftree-vectorize -mcpu=generic -fno-math-errno"
+          set +e
+          make -j4 VERBOSE=1 random_test 2>&1 | tee ../make.out
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "make exit code: $rc"
+          grep -nE 'internal compiler error|unrecognizable insn|error:|Preprocessed source' ../make.out | head -20 || true
+          mkdir -p ../logs
+          cp ../make.out ../logs/make-${{ matrix.name }}.out
+          for f in $(grep -oE '/tmp/cc[A-Za-z0-9]+\.out' ../make.out | sort -u); do
+            [ -f "$f" ] && cp "$f" ../logs/preprocessed-${{ matrix.name }}-$(basename "$f")
+          done
+          exit $rc
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highway-targets-${{ matrix.name }}
+          path: logs/
+          if-no-files-found: warn

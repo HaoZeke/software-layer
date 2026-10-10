@@ -4,8 +4,6 @@
 name: probe eOn easystack on aarch64/generic
 on:
   workflow_dispatch:
-  push:
-    branches: [probe/highway-aarch64]
 permissions:
   contents: read
 jobs:
