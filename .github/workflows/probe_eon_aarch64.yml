@@ -20,8 +20,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/eessi
-          key: eon-1692-aarch64-generic-optarch-${{ github.run_id }}
-          restore-keys: eon-1692-aarch64-generic-optarch-
+          key: eon-1692-aarch64-generic-hwypatch-${{ github.run_id }}
+          restore-keys: eon-1692-aarch64-generic-
 
       - name: Mount EESSI CernVM-FS repository
         uses: eessi/github-action-eessi@v3
@@ -32,9 +32,7 @@ jobs:
         run: |
           cat > eon-1692.yml <<'YML'
           easyconfigs:
-            - Highway-1.4.0-GCCcore-15.2.0.eb:
-                options:
-                  from-commit: f6a7f8bb597b4fc1d79ef7b9a64e6e49d18143e2
+            - Highway-1.4.0-GCCcore-15.2.0.eb
             - inih-62-GCCcore-15.2.0.eb
             - fmt-12.2.0-GCCcore-15.2.0.eb
             - cargo-c-0.10.23-GCCcore-15.2.0.eb
@@ -57,10 +55,14 @@ jobs:
                   include-easyblocks-from-commit: 8bf091921178ef758011898aeb5921fb8f9d814d
                   from-commit: a473f050f7ccec221f2fbb814d7a91a439462654
           YML
+          # Highway comes from the fork branch that carries the GCC 15.2 ICE patch
+          # (easyconfigs commit 83b0e79ecf), ahead of the robot search path
+          git clone -q --depth 1 -b 20261010-Highway-1.4.0-gcc15-sve-ice https://github.com/HaoZeke/easybuild-easyconfigs ec-highway
           export EESSI_SOFTWARE_SUBDIR_OVERRIDE=aarch64/generic
           source /cvmfs/software.eessi.io/versions/2026.06/init/bash
           module load EESSI-extend/2026.06-easybuild
           eb --version
+          export EASYBUILD_ROBOT_PATHS="$PWD/ec-highway/easybuild/easyconfigs:"
           set +e
           # the bot passes --generic for a */generic target, which sets optarch GENERIC;
           # EESSI-extend alone builds native, so the flag is set here as the bot does
@@ -88,7 +90,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/eessi
-          key: eon-1692-aarch64-generic-optarch-${{ github.run_id }}
+          key: eon-1692-aarch64-generic-hwypatch-${{ github.run_id }}
 
       - name: Keep the logs
         if: always()
