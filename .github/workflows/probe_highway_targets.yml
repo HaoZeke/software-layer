@@ -19,19 +19,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: no-sve
-            disabled: "HWY_SVE"
-          - name: no-sve2
-            disabled: "HWY_SVE2"
-          - name: no-neon-bf16
-            disabled: "HWY_NEON_BF16"
-          - name: no-scalable-sve
-            disabled: "HWY_SVE | HWY_SVE2"
-          - name: no-fixed-sve
-            disabled: "HWY_SVE_256 | HWY_SVE2_128"
-          - name: no-all-sve
-            disabled: "HWY_SVE | HWY_SVE2 | HWY_SVE_256 | HWY_SVE2_128"
+          - name: patched-all-targets
+            disabled: "0"
+            patch: probe/Highway-1.4.0_gcc15-sve-lanes-out-of-line.patch
+          - name: unpatched-all-targets
+            disabled: "0"
+            patch: ""
     steps:
+      - uses: actions/checkout@v4
+
       - name: Show host CPU
         run: lscpu | grep -E 'Model name|Flags|^CPU\(s\)'
 
@@ -48,6 +44,7 @@ jobs:
           curl -sSL -o sve.patch https://raw.githubusercontent.com/easybuilders/easybuild-easyconfigs/f6a7f8bb597b4fc1d79ef7b9a64e6e49d18143e2/easybuild/easyconfigs/h/Highway/Highway-1.4.0_fix-aarch64-sve-build.patch
           echo "8228cbe26f7caa164b0b8e1cce2c9ea440ca9c5f6a996463ca8779ce2232c222  sve.patch" | sha256sum -c
           cd highway-1.4.0 && patch -p1 < ../sve.patch
+          if [ -n "${{ matrix.patch }}" ]; then patch -p1 < "../${{ matrix.patch }}"; fi
 
       - name: Configure and compile random_test (${{ matrix.name }})
         run: |
