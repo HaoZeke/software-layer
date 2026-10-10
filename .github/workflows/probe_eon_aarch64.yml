@@ -22,8 +22,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ~/eessi
-          key: eon-1692-aarch64-generic-${{ github.run_id }}
-          restore-keys: eon-1692-aarch64-generic-
+          key: eon-1692-aarch64-generic-optarch-${{ github.run_id }}
+          restore-keys: eon-1692-aarch64-generic-optarch-
 
       - name: Mount EESSI CernVM-FS repository
         uses: eessi/github-action-eessi@v3
@@ -64,7 +64,9 @@ jobs:
           module load EESSI-extend/2026.06-easybuild
           eb --version
           set +e
-          eb --easystack eon-1692.yml --robot --parallel 4 2>&1 | tee eb.out
+          # the bot passes --generic for a */generic target, which sets optarch GENERIC;
+          # EESSI-extend alone builds native, so the flag is set here as the bot does
+          eb --easystack eon-1692.yml --robot --parallel 4 --optarch=GENERIC 2>&1 | tee eb.out
           rc=${PIPESTATUS[0]}
           set -e
           echo "eb exit code: $rc"
@@ -88,7 +90,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ~/eessi
-          key: eon-1692-aarch64-generic-${{ github.run_id }}
+          key: eon-1692-aarch64-generic-optarch-${{ github.run_id }}
 
       - name: Keep the logs
         if: always()
