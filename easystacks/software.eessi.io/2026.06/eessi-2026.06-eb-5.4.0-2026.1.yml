@@ -151,3 +151,43 @@ easyconfigs:
   - PnetCDF-1.14.1-gompi-2026.1.eb
   - h5py-3.16.0-foss-2026.1.eb
   - netcdf4-python-1.7.4-foss-2026.1.eb
+  # Snellius Snel-2026 closure, lane local-zen2 (built on Snellius zen2 under EESSI-extend 2026.06, 2026-10-12)
+  - GOTCHA-1.0.8-GCCcore-15.2.0.eb
+  - Highway-1.4.0-GCCcore-15.2.0.eb
+  - ISL-0.27-GCCcore-15.2.0.eb
+  - MPC-1.4.1-GCCcore-15.2.0.eb
+  - gmpy2-2.3.0-GCCcore-15.2.0.eb
+  - fmt-12.2.0-GCCcore-15.2.0.eb
+  - gc-8.2.8-GCCcore-15.2.0.eb
+  - libcerf-3.3-GCCcore-15.2.0.eb
+  - yaml-cpp-0.9.0-GCCcore-15.2.0.eb
+  - Perl-bundle-CPAN-5.42.0-GCCcore-15.2.0.eb
+  - Greenlet-3.5.2-GCCcore-15.2.0.eb
+  - PycURL-7.46.0-GCCcore-15.2.0.eb
+  - bcrypt-5.0.0-GCCcore-15.2.0.eb
+  - psycopg-3.3.4-GCCcore-15.2.0.eb
+  - SQLAlchemy-2.0.51-GCCcore-15.2.0.eb
+  - Flask-3.1.3-GCCcore-15.2.0.eb
+  - spglib-python-2.7.0-gfbf-2026.1.eb
+  - libuv-1.52.1-GCCcore-15.2.0.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/commit/51d410dfc1ec19df4d726e971cb4544c1aa0f867
+        from-commit: 51d410dfc1ec19df4d726e971cb4544c1aa0f867
+  - libwebsockets-4.5.8-GCCcore-15.2.0.eb:
+      options:
+        from-commit: 51d410dfc1ec19df4d726e971cb4544c1aa0f867
+  - ParMETIS-4.0.3-gompi-2026.1.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/commit/b567a9d88f8ada239b1f10fb78ea38d16f289de7
+        from-commit: b567a9d88f8ada239b1f10fb78ea38d16f289de7
+  - SuperLU_DIST-9.2.1-foss-2026.1.eb:
+      options:
+        from-commit: b567a9d88f8ada239b1f10fb78ea38d16f289de7
+  - cftime-1.6.5-gfbf-2026.1.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/commit/56db7485eb504d69c8cd149a997008501417dc2e
+        from-commit: 56db7485eb504d69c8cd149a997008501417dc2e
+  - bokeh-3.10.0-gfbf-2026.1.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/commit/e00a1b62aad8ff2415eaac04febf2ff924b3423b
+        from-commit: e00a1b62aad8ff2415eaac04febf2ff924b3423b
