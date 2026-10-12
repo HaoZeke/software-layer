@@ -175,6 +175,8 @@ easyconfigs:
         from-commit: 51d410dfc1ec19df4d726e971cb4544c1aa0f867
   - libwebsockets-4.5.8-GCCcore-15.2.0.eb:
       options:
+        # needs the -DDISABLE_WERROR=ON change (easybuilders/easybuild-easyconfigs PR from branch
+        # 20261012-libwebsockets-4.5.8-no-werror); switch to from-pr once it is open
         from-commit: 51d410dfc1ec19df4d726e971cb4544c1aa0f867
   - ParMETIS-4.0.3-gompi-2026.1.eb:
       options:
