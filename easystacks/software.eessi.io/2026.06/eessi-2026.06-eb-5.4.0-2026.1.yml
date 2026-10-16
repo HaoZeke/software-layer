@@ -152,6 +152,10 @@ easyconfigs:
   - h5py-3.16.0-foss-2026.1.eb
   - netcdf4-python-1.7.4-foss-2026.1.eb
   - MPICH-5.0.1-GCC-15.2.0.eb
+  - libwebsockets-4.5.8-GCCcore-15.2.0.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/27166
+        from-commit: 4947d52325847b7c20988f3f8267f9545e7537dc
   - ttyd-1.7.7-GCCcore-15.2.0.eb:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26807
