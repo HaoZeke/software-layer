@@ -165,6 +165,10 @@ easyconfigs:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26838
         from-commit: cdf41c0f308f1bb8ddf775dba8355d5c24407854
+  - dask-2026.7.1-gfbf-2026.1.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26713
+        from-commit: 455567d8a8a3e5e92845542ba827efb2fe6ed350
   - dask-labextension-7.0.0-gfbf-2026.1.eb:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26838
