@@ -160,6 +160,7 @@ easyconfigs:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26807
         from-commit: 4322be61bfc22c804858ab15712f9babf4f5316a
+  - SOCI-4.1.4-GCCcore-15.2.0.eb
   - RStudio-Server-2026.06.0+242-foss-2026.1-R-4.6.1.eb:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26601
