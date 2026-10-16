@@ -152,7 +152,6 @@ easyconfigs:
   - h5py-3.16.0-foss-2026.1.eb
   - netcdf4-python-1.7.4-foss-2026.1.eb
   - MPICH-5.0.1-GCC-15.2.0.eb
-  - tbb-2022.3.0-GCCcore-15.2.0.eb
   - ttyd-1.7.7-GCCcore-15.2.0.eb:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/26807
