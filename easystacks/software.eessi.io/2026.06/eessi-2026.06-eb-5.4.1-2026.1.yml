@@ -4,4 +4,3 @@ easyconfigs:
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
   - PDM-2.28.0-GCCcore-15.2.0.eb
   - PLY-3.11-GCCcore-15.2.0.eb
-  - Pandoc-3.8.2.1.eb
