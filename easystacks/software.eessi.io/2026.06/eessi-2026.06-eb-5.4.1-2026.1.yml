@@ -2,3 +2,8 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - uv-0.11.28-GCCcore-15.2.0.eb:
+      options:
+        from-commit: 9a990fb8854106d12637482e395d8a46ce84296c
+  - wget-1.25.0-GCCcore-15.2.0.eb
+  - zfp-1.0.1-GCCcore-15.2.0.eb
