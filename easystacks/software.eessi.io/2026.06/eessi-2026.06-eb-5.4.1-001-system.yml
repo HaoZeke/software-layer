@@ -1,0 +1,5 @@
+easyconfigs:
+  - Julia-1.13.2.eb:
+      options:
+        from-commit: 58edeed5727059353ee41c39303894b72c9094b0
+  - OSPRay-3.2.0.eb

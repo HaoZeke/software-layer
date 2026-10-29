@@ -2,8 +2,4 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
-  - Julia-1.13.2.eb:
-      options:
-        from-commit: 58edeed5727059353ee41c39303894b72c9094b0
   - Kokkos-5.1.1-GCC-15.2.0.eb
-  - OSPRay-3.2.0.eb
