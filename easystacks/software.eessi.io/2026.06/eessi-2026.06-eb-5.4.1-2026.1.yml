@@ -2,3 +2,8 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - ParMETIS-4.0.3-gompi-2026.1.eb
+  - PuLP-3.3.2-foss-2026.1.eb
+  - PyWavelets-1.10.0-foss-2026.1.eb:
+      options:
+        from-commit: c2b595b2ff69c0e4fa4215ac0a366454418804a8
