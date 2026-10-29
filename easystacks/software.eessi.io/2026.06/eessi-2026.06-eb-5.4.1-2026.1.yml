@@ -2,3 +2,10 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - MDAnalysis-2.10.0-foss-2026.1.eb
+  - Seaborn-0.13.2-gfbf-2026.1.eb
+  - huggingface-hub-1.24.0-GCCcore-15.2.0.eb
+  - mrcfile-1.5.4-gfbf-2026.1.eb
+  - numba-0.65.1-foss-2026.1.eb
+  - tqdm-4.67.3-GCCcore-15.2.0.eb
+  - umap-learn-0.5.12-foss-2026.1.eb
