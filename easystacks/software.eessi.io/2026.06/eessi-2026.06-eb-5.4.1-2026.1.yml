@@ -6,4 +6,3 @@ easyconfigs:
       options:
         from-commit: c2b595b2ff69c0e4fa4215ac0a366454418804a8
   - HeFFTe-2.4.1-foss-2026.1.eb
-  - HyperQueue-0.24.0.eb
