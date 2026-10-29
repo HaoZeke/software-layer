@@ -5,4 +5,3 @@ easyconfigs:
   - FastQC-0.13.0-GCCcore-15.2.0-Java-25.eb:
       options:
         from-commit: 30a6b84612b66d697493d58fe051f43fbefa3e78
-  - Nextflow-26.04.6.eb
