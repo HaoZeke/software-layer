@@ -2,3 +2,13 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - BLAST+-2.17.0-gompi-2026.1.eb
+  - Brotli-python-1.2.0-GCCcore-15.2.0.eb
+  - DIAMOND-2.2.6-GCC-15.2.0.eb
+  - FastME-2.1.6.4-GCC-15.2.0.eb
+  - LMDB-0.9.35-GCCcore-15.2.0.eb
+  - LZO-2.10-GCCcore-15.2.0.eb
+  - MCL-22.282-GCCcore-15.2.0.eb
+  - MMseqs2-18-8cc5c-gompi-2026.1.eb
+  - OrthoFinder-3.1.5-foss-2026.1.eb
+  - cimfomfa-22.273-GCCcore-15.2.0.eb
