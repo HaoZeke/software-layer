@@ -2,3 +2,6 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - Wannier90-3.1.0-foss-2026.1.eb
+  - dill-0.4.1-GCCcore-15.2.0.eb
+  - ecBuild-3.14.2-GCCcore-15.2.0.eb
