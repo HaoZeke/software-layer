@@ -2,3 +2,6 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - Redis-8.2.9-GCCcore-15.2.0.eb
+  - redis-py-7.4.1-GCCcore-15.2.0.eb
+  - websockify-0.13.0-gfbf-2026.1.eb
