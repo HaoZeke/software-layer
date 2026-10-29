@@ -2,3 +2,6 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - Blosc-1.21.6-GCCcore-15.2.0.eb
+  - plotly.py-7.0.0-GCCcore-15.2.0.eb
+  - statsmodels-0.15.0-gfbf-2026.1.eb
