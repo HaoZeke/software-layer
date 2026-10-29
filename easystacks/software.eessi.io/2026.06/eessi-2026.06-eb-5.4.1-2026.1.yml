@@ -2,3 +2,6 @@ easyconfigs:
   - BEDTools-2.31.1-GCC-15.2.0.eb
   - SAMtools-1.23.1-GCC-15.2.0.eb
   - GATK-4.6.2.0-GCCcore-15.2.0-Java-25.eb
+  - gflags-2.3.0-GCCcore-15.2.0.eb
+  - gnupg-bundle-20260518-GCCcore-15.2.0.eb
+  - imageio-2.37.4-gfbf-2026.1.eb
