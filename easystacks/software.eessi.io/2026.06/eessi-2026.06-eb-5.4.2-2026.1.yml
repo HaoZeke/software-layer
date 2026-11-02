@@ -1,0 +1,3 @@
+easyconfigs:
+  - grpcio-1.84.0-GCCcore-15.2.0.eb
+  - protobuf-python-7.35.0-GCCcore-15.2.0.eb
