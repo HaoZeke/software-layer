@@ -1,0 +1,4 @@
+easyconfigs:
+  - uv-0.11.28-GCCcore-15.2.0.eb
+  - wget-1.25.0-GCCcore-15.2.0.eb
+  - zfp-1.0.1-GCCcore-15.2.0.eb
