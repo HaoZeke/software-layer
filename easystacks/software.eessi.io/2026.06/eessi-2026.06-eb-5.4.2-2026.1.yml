@@ -1,0 +1,4 @@
+easyconfigs:
+  - ml_dtypes-0.5.4-gfbf-2026.1.eb
+  - nsync-1.30.0-GCCcore-15.2.0.eb
+  - optree-0.20.0-GCCcore-15.2.0.eb
