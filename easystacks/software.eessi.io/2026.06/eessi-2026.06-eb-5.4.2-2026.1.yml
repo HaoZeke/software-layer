@@ -1,0 +1,4 @@
+easyconfigs:
+  - Blosc-1.21.6-GCCcore-15.2.0.eb
+  - plotly.py-7.0.0-GCCcore-15.2.0.eb
+  - statsmodels-0.15.0-gfbf-2026.1.eb
