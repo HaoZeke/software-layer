@@ -1,0 +1,4 @@
+easyconfigs:
+  - pigz-2.8-GCCcore-15.2.0.eb
+  - py-cpuinfo-9.0.0-GCCcore-15.2.0.eb
+  - pydot-4.0.1-GCCcore-15.2.0.eb
