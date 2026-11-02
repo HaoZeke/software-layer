@@ -1,0 +1,5 @@
+easyconfigs:
+  - Redis-8.2.9-GCCcore-15.2.0.eb
+  - redis-py-7.4.1-GCCcore-15.2.0.eb
+  - websockify-0.13.0-gfbf-2026.1.eb
+
