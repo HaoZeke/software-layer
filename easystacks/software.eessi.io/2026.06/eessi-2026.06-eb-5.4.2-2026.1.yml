@@ -1,0 +1,4 @@
+easyconfigs:
+  - spdlog-1.17.0-GCCcore-15.2.0.eb
+  - tlparse-0.4.8-GCCcore-15.2.0.eb
+  - tmux-3.6b-GCCcore-15.2.0.eb
