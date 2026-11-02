@@ -1,0 +1,4 @@
+easyconfigs:
+  - GTK4-4.22.5-GCCcore-15.2.0.eb
+  - GST-plugins-good-1.29.2-GCCcore-15.2.0.eb
+
