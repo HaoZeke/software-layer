@@ -1,0 +1,4 @@
+easyconfigs:
+  - ParMETIS-4.0.3-gompi-2026.1.eb
+  - PuLP-3.3.2-foss-2026.1.eb
+  - PyWavelets-1.10.0-foss-2026.1.eb
