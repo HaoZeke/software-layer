@@ -1,0 +1,4 @@
+easyconfigs:
+  - libmad-0.15.1b-GCCcore-15.2.0.eb
+  - libxsmm-1.17-GCC-15.2.0.eb
+  - minimap2-2.31-GCCcore-15.2.0.eb
