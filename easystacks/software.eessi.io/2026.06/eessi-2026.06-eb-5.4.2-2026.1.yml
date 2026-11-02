@@ -1,0 +1,5 @@
+easyconfigs:
+  - FLINT-3.5.0-gfbf-2026.1.eb
+  - NTL-11.6.0-GCC-15.2.0.eb
+  - SymEngine-0.15.0-gfbf-2026.1.eb
+
