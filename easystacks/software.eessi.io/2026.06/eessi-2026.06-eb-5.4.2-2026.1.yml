@@ -1,0 +1,4 @@
+easyconfigs:
+  - iodata-1.0.1-foss-2026.1.eb
+  - jemalloc-5.3.1-GCCcore-15.2.0.eb
+  - jq-1.8.1-GCCcore-15.2.0.eb
