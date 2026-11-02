@@ -1,0 +1,4 @@
+easyconfigs:
+  - libedit-20260512-GCCcore-15.2.0.eb
+  - libev-4.33-GCCcore-15.2.0.eb
+  - libfyaml-0.9.6-GCCcore-15.2.0.eb
