@@ -1,0 +1,4 @@
+easyconfigs:
+  - flatbuffers-25.12.19-GCCcore-15.2.0.eb
+  - flatbuffers-python-25.12.19-GCCcore-15.2.0.eb
+  - gawk-5.4.0-GCCcore-15.2.0.eb
