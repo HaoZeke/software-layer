@@ -1,0 +1,4 @@
+easyconfigs:
+  - gflags-2.3.0-GCCcore-15.2.0.eb
+  - gnupg-bundle-20260518-GCCcore-15.2.0.eb
+  - imageio-2.37.4-gfbf-2026.1.eb
