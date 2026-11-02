@@ -1,0 +1,4 @@
+easyconfigs:
+  - Pysam-0.24.0-GCC-15.2.0.eb
+  - STAR-2.7.11b-GCC-15.2.0.eb
+  - VSEARCH-2.32.0-GCC-15.2.0.eb
