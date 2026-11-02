@@ -1,0 +1,4 @@
+easyconfigs:
+  - pyfaidx-0.9.0.4-GCCcore-15.2.0.eb
+  - pyzstd-0.19.1-GCCcore-15.2.0.eb
+  - qrupdate-1.1.2-gfbf-2026.1.eb
