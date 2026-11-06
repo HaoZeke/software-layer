@@ -1,0 +1,5 @@
+# RStudio-Server is not buildable for every 2026.06 target:
+# - x86_64/intel/graniterapids has no R, R-bundle-CRAN, Java or nodejs in 2026.06 yet;
+# - riscv64/generic: the easyconfig runs install-quarto, which supports x86 and Arm only.
+easyconfigs:
+  - RStudio-Server-2026.06.0+242-foss-2026.1-R-4.6.1.eb
