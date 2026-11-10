@@ -28,4 +28,4 @@ easyconfigs:
   - GROMACS-2026.4-foss-2026.1.eb:
       options:
         # see https://github.com/easybuilders/easybuild-easyconfigs/pull/27122
-        from-commit: aac42b62d957f2a521309bdb14d01de1b3431946
+        from-commit: 556c53d08c570e1aaadde415b363be8343265523
