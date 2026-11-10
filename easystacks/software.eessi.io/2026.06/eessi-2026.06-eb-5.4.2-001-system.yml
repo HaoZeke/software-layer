@@ -1,2 +1,3 @@
 easyconfigs:
+  - Go-1.26.10.eb
   - HyperQueue-0.24.0.eb
