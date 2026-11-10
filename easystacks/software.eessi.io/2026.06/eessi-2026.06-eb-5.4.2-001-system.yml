@@ -1,3 +1,4 @@
 easyconfigs:
+  - Go-1.26.10.eb
   - Julia-1.13.2.eb
   - OSPRay-3.2.0.eb
