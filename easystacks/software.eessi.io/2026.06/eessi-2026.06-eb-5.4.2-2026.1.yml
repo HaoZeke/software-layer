@@ -25,6 +25,9 @@ easyconfigs:
   - Hypre-3.1.0-foss-2026.1.eb
   - PETSc-3.25.0-foss-2026.1.eb
   - Boost.Python-NumPy-1.90.0-gfbf-2026.1.eb
-  - uv-0.11.28-GCCcore-15.2.0.eb
+  - uv-0.13.7-GCCcore-15.2.0.eb:
+      options:
+        pr-target-account: HaoZeke
+        from-commit: fa56db12810d1574ca4383d75aa00a57c85d032f
   - wget-1.25.0-GCCcore-15.2.0.eb
   - zfp-1.0.1-GCCcore-15.2.0.eb
