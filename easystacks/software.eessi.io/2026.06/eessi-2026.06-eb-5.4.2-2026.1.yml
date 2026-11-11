@@ -27,4 +27,5 @@ easyconfigs:
   - Boost.Python-NumPy-1.90.0-gfbf-2026.1.eb
   - Pysam-0.24.0-GCC-15.2.0.eb
   - STAR-2.7.11b-GCC-15.2.0.eb
+  - simde-0.8.2-GCCcore-15.2.0.eb
   - VSEARCH-2.32.0-GCC-15.2.0.eb
