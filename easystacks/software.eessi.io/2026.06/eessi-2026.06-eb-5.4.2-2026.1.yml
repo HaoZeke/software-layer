@@ -26,6 +26,7 @@ easyconfigs:
   - PETSc-3.25.0-foss-2026.1.eb
   - Boost.Python-NumPy-1.90.0-gfbf-2026.1.eb
   # RStudio-Server is not buildable for every 2026.06 target:
-  # - x86_64/intel/graniterapids has no R, R-bundle-CRAN, Java or nodejs in 2026.06 yet;
-  # - riscv64/generic: the easyconfig runs install-quarto, which supports x86 and Arm only.
+  # - x86_64/intel/graniterapids has no R, R-bundle-CRAN, Java or nodejs in 2026.06 yet.
+  # riscv64/generic builds it with Quarto disabled: there is no riscv64 Quarto binary,
+  # and the easyconfig uses the nodejs build dependency instead of a prebuilt Node.
   - RStudio-Server-2026.06.0+242-foss-2026.1-R-4.6.1.eb
