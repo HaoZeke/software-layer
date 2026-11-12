@@ -1,0 +1,23 @@
+# rebuild cURL to use the CA bundle from the EESSI sysroot,
+# see https://github.com/easybuilders/easybuild-easyconfigs/pull/27426
+# and the EB_cURL easyblock that passes --with-ca-bundle when --sysroot is set,
+# see https://github.com/easybuilders/easybuild-easyblocks/pull/4281
+easyconfigs:
+  - cURL-8.7.1-GCCcore-13.3.0.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/27426
+        from-pr: 27426
+        # see https://github.com/easybuilders/easybuild-easyblocks/pull/4281
+        include-easyblocks-from-pr: 4281
+  - cURL-8.11.1-GCCcore-14.2.0.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/27426
+        from-pr: 27426
+        # see https://github.com/easybuilders/easybuild-easyblocks/pull/4281
+        include-easyblocks-from-pr: 4281
+  - cURL-8.14.1-GCCcore-14.3.0.eb:
+      options:
+        # see https://github.com/easybuilders/easybuild-easyconfigs/pull/27426
+        from-pr: 27426
+        # see https://github.com/easybuilders/easybuild-easyblocks/pull/4281
+        include-easyblocks-from-pr: 4281
