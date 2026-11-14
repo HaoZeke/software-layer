@@ -1,0 +1,53 @@
+--- a/eb_hooks.py
++++ b/eb_hooks.py
+@@ -704,6 +704,41 @@
+         raise EasyBuildError("Qt5-specific hook triggered for non-Qt5 easyconfig?!")
+ 
+ 
++def parse_hook_qt6_disable_waitpkg(ec):
++    """
++    Keep WAITPKG out of the ISA Qt treats as mandatory at process startup.
++
++    GCC defines __WAITPKG__ for -march=sapphirerapids and -march=graniterapids,
++    and for -march=native on a host whose CPUID advertises WAITPKG. Qt copies
++    every such macro into qCompilerCpuFeatures (qsimd_x86_p.h). qDetectCpuFeatures()
++    then aborts when the runtime CPU lacks one of those bits. KVM guests often
++    clear the WAITPKG bit (CPUID leaf 7.0 ECX bit 5) while leaving the rest of
++    the Sapphire/Emerald/Granite Rapids feature set visible, so qmake prints
++    "Incompatible processor. This Qt build requires the following features: waitpkg"
++    and aborts. GCC does not emit umwait, umonitor or tpause unless the source
++    uses those intrinsics, so compiling Qt with -mno-waitpkg only removes that
++    startup requirement. The flag is appended after -march, which is what clears
++    the macro.
++    """
++    if get_cpu_architecture() != X86_64:
++        return
++    # Read the raw easyconfig dict. Touching ec.toolchain here would initialise
++    # the toolchain from the options as they stand now, before this flag is added.
++    # -mno-waitpkg is a GCC x86 flag. Qt6 in EESSI is built with GCCcore.
++    if ec['toolchain']['name'] not in ('GCCcore', 'GCC', 'foss', 'gompi', 'gfbf', 'lfoss'):
++        return
++    if 'toolchainopts' not in ec or ec['toolchainopts'] is None:
++        ec['toolchainopts'] = {}
++    flag = '-mno-waitpkg'
++    for key in ('extra_cflags', 'extra_cxxflags'):
++        current = ec['toolchainopts'].get(key) or ''
++        parts = current.split()
++        if flag not in parts:
++            parts.append(flag)
++        ec['toolchainopts'][key] = ' '.join(parts)
++    print_msg("Disabled WAITPKG for %s %s via toolchainopts %s", ec.name, ec.version, ec['toolchainopts'])
++
++
+ def parse_hook_qt6_libinput(ec, eprefix):
+     """
+     Add dependency on libinput to Qt6.
+@@ -714,6 +749,8 @@
+         '15.2.0': '1.31.3',
+     }
+     if ec.name == 'Qt6':
++        # Before ec.toolchain is touched, so the new flags are part of toolchain init.
++        parse_hook_qt6_disable_waitpkg(ec)
+         # Only enforcing from GCCcore 14.3.0 onwards for Qt6 6.9.3 onwards
+         if ec.toolchain.version >= LooseVersion('14.3.0'):
+             if ec.version >= LooseVersion('6.9.3'):

@@ -18,6 +18,15 @@ if [[ -z "${EESSI_INTERACTIVE_BUILD}" ]]; then
     cd software-layer-scripts
     git fetch --depth=1 origin ${commit_sha}
     git checkout --detach ${commit_sha}
+
+    # Local patches on top of the pinned software-layer-scripts commit.
+    # bot/patches/*.patch is applied before eb_hooks.py is symlinked into this tree.
+    if compgen -G "${TOPDIR}/patches/*.patch" > /dev/null; then
+        for patch in "${TOPDIR}"/patches/*.patch; do
+            echo "Applying $(basename "${patch}") to software-layer-scripts @ ${commit_sha}"
+            git apply "${patch}"
+        done
+    fi
     cd ..
 
     # symlink everything, except for:
